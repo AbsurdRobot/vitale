@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vitale — Your Personal Health Agent</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
+
+:root {
+  --cream:#f6f1e9; --cream2:#ede6d8; --ink:#1b1b17;
+  --forest:#273f35; --forest2:#355449; --sage:#6e9882;
+  --gold:#b07d3a; --gold2:#c9943f; --blush:#c4847e;
+  --muted:#76766a; --rule:#d4ccba; --white:#fdfaf5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font-weight:300;line-height:1.65;-webkit-font-smoothing:antialiased;overflow:hidden;height:100dvh}
+
+.screen{display:none;height:100dvh;flex-direction:column}
+.screen.active{display:flex}
+
+/* KEY SCREEN */
+#s-key{background:var(--forest);align-items:center;justify-content:center;padding:2rem 1.5rem;position:relative;overflow:hidden}
+#s-key::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 75% 15%,rgba(176,125,58,.18) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 15% 85%,rgba(110,152,130,.14) 0%,transparent 70%);pointer-events:none}
+.key-wrap{position:relative;z-index:1;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center}
+.vitale-icon{width:60px;height:60px;border-radius:50%;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.1rem;animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(110,152,130,.3)}50%{box-shadow:0 0 0 12px rgba(110,152,130,0)}}
+.vitale-title{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;color:var(--cream);letter-spacing:.06em;margin-bottom:.2rem}
+.vitale-sub{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(246,241,233,.45);margin-bottom:2.5rem}
+.key-card{width:100%;background:rgba(246,241,233,.07);border:1px solid rgba(246,241,233,.14);border-radius:10px;padding:1.75rem}
+.field-label{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(246,241,233,.45);margin-bottom:.4rem}
+.field-hint{font-size:.78rem;color:rgba(246,241,233,.38);margin-bottom:1rem;line-height:1.6}
+.field-hint a{color:var(--gold2);text-decoration:none}
+.key-field{width:100%;padding:.75rem 1rem;background:rgba(0,0,0,.28);border:1px solid rgba(246,241,233,.18);border-radius:6px;outline:none;color:var(--cream);font-family:'Jost',sans-serif;font-size:.85rem;letter-spacing:.04em;transition:border-color .2s;margin-bottom:.75rem}
+.key-field:focus{border-color:var(--sage)}
+.key-field::placeholder{color:rgba(246,241,233,.22)}
+.err-txt{font-size:.76rem;color:#e09090;margin-bottom:.75rem;display:none;line-height:1.5}
+.btn-gold{width:100%;padding:.82rem;background:var(--gold);color:var(--cream);border:none;border-radius:6px;cursor:pointer;font-family:'Jost',sans-serif;font-size:.78rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;transition:background .2s,opacity .2s}
+.btn-gold:hover:not(:disabled){background:var(--gold2)}
+.btn-gold:disabled{opacity:.45;cursor:not-allowed}
+.key-foot{margin-top:1.1rem;font-size:.68rem;color:rgba(246,241,233,.25);text-align:center;line-height:1.7}
+
+/* ONBOARD SCREEN */
+#s-onboard{background:var(--cream)}
+.top-bar{background:var(--forest);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.bar-logo{font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:var(--cream);letter-spacing:.07em}
+.prog-wrap{display:flex;align-items:center;gap:.6rem}
+.prog-track{width:100px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;width:0%;transition:width .4s ease}
+.prog-lbl{font-size:.66rem;color:rgba(246,241,233,.4);letter-spacing:.09em;min-width:80px;text-align:right}
+.chat-body{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;scroll-behavior:smooth}
+.msg{display:flex;gap:.65rem;animation:msgIn .28s ease both}
+@keyframes msgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.u{flex-direction:row-reverse}
+.av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;margin-top:2px}
+.msg.a .av{background:var(--forest);color:var(--cream)}
+.msg.u .av{background:var(--cream2);color:var(--ink)}
+.bbl{max-width:80%;padding:.8rem 1rem;border-radius:14px;font-size:.86rem;line-height:1.72}
+.msg.a .bbl{background:var(--white);border:1px solid var(--rule);border-top-left-radius:3px;color:var(--ink)}
+.msg.u .bbl{background:var(--forest);color:var(--cream);border-top-right-radius:3px}
+.typing-bbl{padding:.65rem .9rem !important}
+.dots{display:flex;gap:4px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--sage);animation:bounce 1.1s infinite ease-in-out}
+.dot:nth-child(2){animation-delay:.18s}
+.dot:nth-child(3){animation-delay:.36s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+.input-area{flex-shrink:0;border-top:1px solid var(--rule);padding:1rem 1.25rem;background:var(--cream);display:flex;flex-direction:column;gap:.75rem}
+.input-row{display:flex;gap:.6rem;align-items:flex-end}
+.chat-ta{flex:1;background:var(--white);border:1px solid var(--rule);border-radius:22px;padding:.65rem 1rem;font-family:'Jost',sans-serif;font-size:.85rem;color:var(--ink);outline:none;resize:none;line-height:1.5;max-height:110px;min-height:42px;transition:border-color .2s;overflow-y:auto}
+.chat-ta:focus{border-color:var(--sage)}
+.chat-ta::placeholder{color:var(--muted)}
+.send-btn{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:var(--forest);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .1s}
+.send-btn:hover:not(:disabled){background:var(--forest2)}
+.send-btn:active:not(:disabled){transform:scale(.9)}
+.send-btn:disabled{background:var(--rule);cursor:not-allowed}
+.send-btn svg{width:15px;height:15px;fill:var(--cream)}
+.complete-btn{display:none;padding:.85rem;background:var(--forest);color:var(--cream);border:none;border-radius:6px;cursor:pointer;font-family:'Jost',sans-serif;font-size:.78rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase;transition:background .2s}
+.complete-btn:hover{background:var(--forest2)}
+.complete-btn.show{display:block}
+
+/* COACH SCREEN */
+#s-coach{background:var(--cream)}
+.coach-top{background:var(--forest);padding:.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.coach-logo{font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:var(--cream);letter-spacing:.07em}
+.coach-dt{font-size:.68rem;color:rgba(246,241,233,.38);letter-spacing:.08em}
+.hdr-btns{display:flex;gap:.4rem}
+.hdr-btn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);border-radius:5px;padding:.35rem .65rem;color:rgba(246,241,233,.6);font-size:.68rem;font-family:'Jost',sans-serif;letter-spacing:.07em;cursor:pointer;transition:background .2s}
+.hdr-btn:hover{background:rgba(255,255,255,.16)}
+.coach-body{flex:1;display:flex;overflow:hidden}
+.sidebar{width:220px;flex-shrink:0;border-right:1px solid var(--rule);padding:1.25rem 1rem;overflow-y:auto;display:flex;flex-direction:column;gap:1.5rem}
+@media(max-width:640px){.sidebar{display:none}}
+.sb-title{font-size:.63rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem}
+.m-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.2rem}
+.m-lbl{font-size:.76rem;color:var(--muted)}
+.m-val{font-size:.78rem;font-weight:500;color:var(--forest)}
+.m-track{height:4px;background:var(--cream2);border-radius:2px;margin-bottom:.8rem;overflow:hidden}
+.m-bar{height:100%;border-radius:2px;transition:width .5s ease;width:0%}
+.m-bar.c{background:var(--gold)}
+.m-bar.p{background:var(--forest)}
+.m-bar.ch{background:var(--sage)}
+.m-bar.f{background:var(--blush)}
+.m-bar.fi{background:#8eb88a}
+.habit{display:flex;align-items:center;gap:.5rem;font-size:.76rem;color:var(--muted);margin-bottom:.35rem;cursor:pointer;user-select:none;transition:color .2s}
+.habit.done{color:var(--forest);text-decoration:line-through}
+.hcircle{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--rule);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.55rem;transition:all .2s}
+.habit.done .hcircle{background:var(--forest);border-color:var(--forest);color:#fff}
+.coach-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.coach-chat{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;scroll-behavior:smooth}
+.coach-in-area{flex-shrink:0;border-top:1px solid var(--rule);padding:.85rem 1.25rem;background:var(--cream)}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem}
+.chip{background:var(--white);border:1px solid var(--rule);border-radius:20px;padding:.28rem .72rem;font-size:.7rem;color:var(--muted);cursor:pointer;font-family:'Jost',sans-serif;transition:background .15s,color .15s,border-color .15s}
+.chip:hover{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+.drawer-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(27,27,23,.55);backdrop-filter:blur(4px)}
+.drawer-bg.open{display:flex;align-items:flex-end;justify-content:center}
+.drawer{background:var(--white);border-radius:16px 16px 0 0;width:100%;max-width:580px;max-height:78vh;overflow-y:auto;padding:1.75rem 1.5rem 3rem;position:relative;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.drawer-handle{width:38px;height:4px;background:var(--rule);border-radius:2px;margin:0 auto 1.5rem}
+.drawer h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:400;color:var(--forest);margin-bottom:1rem}
+.drawer-body{font-size:.82rem;line-height:1.85;white-space:pre-wrap;color:var(--ink)}
+.close-drawer{position:absolute;top:1rem;right:1rem;width:30px;height:30px;border-radius:50%;background:var(--cream2);border:none;cursor:pointer;color:var(--muted);font-size:.95rem;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+
+<!-- SCREEN A: API KEY -->
+<div class="screen active" id="s-key">
+  <div class="key-wrap">
+    <div class="vitale-icon">🌿</div>
+    <div class="vitale-title">Vitale</div>
+    <div class="vitale-sub">Your Personal Health Agent</div>
+    <div class="key-card">
+      <label class="field-label">Anthropic API Key</label>
+      <p class="field-hint">
+        Vitale runs on Claude AI. Get your free API key at
+        <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+        → Log in → API Keys → Create Key.<br><br>
+        Your key starts with <strong style="color:var(--gold2)">sk-ant-</strong>
+      </p>
+      <input class="key-field" type="password" id="key-in" placeholder="sk-ant-api03-..." autocomplete="off"/>
+      <div class="err-txt" id="key-err">
+        Could not connect. Please check:<br>
+        • Your key starts with sk-ant-<br>
+        • You have API credits at console.anthropic.com/settings/billing<br>
+        • No extra spaces in the key
+      </div>
+      <button class="btn-gold" id="key-btn" onclick="submitKey()">Connect & Get Started</button>
+    </div>
+    <p class="key-foot">Your key is saved only in your browser and sent directly to Anthropic. Vitale never stores it.</p>
+  </div>
+</div>
+
+<!-- SCREEN B: ONBOARDING -->
+<div class="screen" id="s-onboard">
+  <div class="top-bar">
+    <span class="bar-logo">Vitale</span>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+      <span class="prog-lbl" id="prog-lbl">Building your profile</span>
+    </div>
+  </div>
+  <div class="chat-body" id="ob-chat"></div>
+  <div class="input-area">
+    <div class="input-row">
+      <textarea class="chat-ta" id="ob-in" placeholder="Type your answer…" rows="1"
+        onkeydown="obKey(event)" oninput="resize(this)"></textarea>
+      <button class="send-btn" id="ob-send" onclick="obSend()">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <button class="complete-btn" id="ob-done" onclick="goCoach()">Profile complete — Start my coaching →</button>
+  </div>
+</div>
+
+<!-- SCREEN C: COACHING -->
+<div class="screen" id="s-coach">
+  <div class="coach-top">
+    <span class="coach-logo">Vitale</span>
+    <span class="coach-dt" id="coach-dt"></span>
+    <div class="hdr-btns">
+      <button class="hdr-btn" onclick="openDrawer()">My Profile</button>
+      <button class="hdr-btn" onclick="doReset()">Reset</button>
+    </div>
+  </div>
+  <div class="coach-body">
+    <aside class="sidebar">
+      <div>
+        <div class="sb-title">Today's Macros</div>
+        <div class="m-row"><span class="m-lbl">Calories</span><span class="m-val" id="mc">— / —</span></div>
+        <div class="m-track"><div class="m-bar c" id="bc"></div></div>
+        <div class="m-row"><span class="m-lbl">Protein</span><span class="m-val" id="mp">—g / —g</span></div>
+        <div class="m-track"><div class="m-bar p" id="bp"></div></div>
+        <div class="m-row"><span class="m-lbl">Carbs</span><span class="m-val" id="mch">—g / —g</span></div>
+        <div class="m-track"><div class="m-bar ch" id="bch"></div></div>
+        <div class="m-row"><span class="m-lbl">Fat</span><span class="m-val" id="mf">—g / —g</span></div>
+        <div class="m-track"><div class="m-bar f" id="bf"></div></div>
+        <div class="m-row"><span class="m-lbl">Fiber</span><span class="m-val" id="mfi">—g / —g</span></div>
+        <div class="m-track"><div class="m-bar fi" id="bfi"></div></div>
+      </div>
+      <div>
+        <div class="sb-title">Daily Habits</div>
+        <div class="habit" onclick="tick(this)"><span class="hcircle"></span>Morning sunlight</div>
+        <div class="habit" onclick="tick(this)"><span class="hcircle"></span>64 oz water</div>
+        <div class="habit" onclick="tick(this)"><span class="hcircle"></span>Movement / exercise</div>
+        <div class="habit" onclick="tick(this)"><span class="hcircle"></span>Meditation</div>
+        <div class="habit" onclick="tick(this)"><span class="hcircle"></span>Supplements taken</div>
+        <div class="habit" onclick="tick(this)"><span class="hcircle"></span>SPF applied</div>
+      </div>
+    </aside>
+    <div class="coach-main">
+      <div class="coach-chat" id="cc-chat"></div>
+      <div class="coach-in-area">
+        <div class="chips">
+          <span class="chip" onclick="chip('Morning check-in')">☀️ Morning check-in</span>
+          <span class="chip" onclick="chip('I just ate: ',false)">🍽 Log food</span>
+          <span class="chip" onclick="chip('What should I eat for lunch?')">💭 Meal ideas</span>
+          <span class="chip" onclick="chip('Evening summary — show my macros for the day')">📊 Day summary</span>
+          <span class="chip" onclick="chip('Suggest a workout for today')">💪 Workout</span>
+        </div>
+        <div class="input-row">
+          <textarea class="chat-ta" id="cc-in" placeholder="Ask your health coach anything…"
+            rows="1" onkeydown="ccKey(event)" oninput="resize(this)"></textarea>
+          <button class="send-btn" id="cc-send" onclick="ccSend()">
+            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile drawer -->
+<div class="drawer-bg" id="drawer-bg" onclick="bgClick(event)">
+  <div class="drawer">
+    <button class="close-drawer" onclick="closeDrawer()">✕</button>
+    <div class="drawer-handle"></div>
+    <h2>My Health Profile</h2>
+    <div class="drawer-body" id="drawer-body"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+let KEY='', PROFILE='', obHist=[], ccHist=[], obTurns=0;
+
+const SYS_OB=`You are Vitale, a warm knowledgeable personal health coach doing an intake interview. Build the user's complete health profile by asking ONE question at a time. Be warm but efficient. Briefly acknowledge each answer (5 words max), then ask the next question.
+
+Cover: age · biological sex · height & weight (if comfortable) · primary health goal · diet style & allergies/restrictions · medications & supplements · health conditions & injuries · activity level · sleep · stress & life context · recent labs or known deficiencies.
+
+After 12-16 exchanges covering all areas, say: "Great — I have everything I need. Here is your personalized health profile:"
+
+Then write a structured profile with these exact sections:
+## Personal Stats
+## Primary Goal  
+## Daily Nutrition Targets
+(Give specific calorie range, protein g, carbs g, fat g, fiber g based on their biology. Briefly explain the why.)
+## Key Nutrients to Monitor
+## Exercise Approach
+## Lifestyle Notes
+
+End with the exact word: PROFILE_COMPLETE`;
+
+const SYS_CC=`You are Vitale, a direct expert personal health coach. Use the user's health profile below as your foundation for every response.
+
+Rules:
+- Direct and concise. No filler.
+- Proactively flag nutrient shortfalls.
+- Prescribe specific amounts (e.g. 130g salmon, not "some protein").
+- When suggesting meals give 2-3 options, never just one.
+- When food is logged, calculate macros and show running totals in this exact format on its own line:
+  📊 Calories: X/Y | Protein: Xg/Yg | Carbs: Xg/Yg | Fat: Xg/Yg | Fiber: Xg/Yg
+- Morning check-in: note the date, ask for weight if they track it, present a suggested full-day meal plan with per-meal macro estimates.
+- Evening summary: show all five macros vs targets, note what was hit and what was short.
+- Always factor in the user's conditions, medications, and restrictions.
+
+USER HEALTH PROFILE:
+`;
+
+async function claude(system, messages, maxTok) {
+  maxTok = maxTok || 900;
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTok,
+      system: system,
+      messages: messages
+    })
+  });
+  if (!resp.ok) {
+    const e = await resp.json().catch(function(){ return {}; });
+    throw new Error((e.error && e.error.message) || ('HTTP ' + resp.status));
+  }
+  const d = await resp.json();
+  return d.content[0].text;
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+
+// Key screen
+document.getElementById('key-in').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') { e.preventDefault(); submitKey(); }
+});
+
+window.addEventListener('load', function(){
+  var k = localStorage.getItem('v_key');
+  var p = localStorage.getItem('v_profile');
+  if (k) document.getElementById('key-in').value = k;
+  if (k && p) {
+    KEY = k; PROFILE = p;
+  }
+});
+
+async function submitKey() {
+  var btn = document.getElementById('key-btn');
+  var err = document.getElementById('key-err');
+  var raw = document.getElementById('key-in').value.trim();
+  if (!raw) return;
+  KEY = raw;
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+  err.style.display = 'none';
+
+  var savedProfile = localStorage.getItem('v_profile');
+  var savedKey = localStorage.getItem('v_key');
+
+  if (savedProfile && savedKey === raw) {
+    PROFILE = savedProfile;
+    initCoach();
+    return;
+  }
+
+  try {
+    await claude('Say only the word: ready', [{role:'user',content:'ping'}], 10);
+    localStorage.setItem('v_key', raw);
+    if (savedProfile) {
+      PROFILE = savedProfile;
+      initCoach();
+    } else {
+      startOnboard();
+    }
+  } catch(e) {
+    KEY = '';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Connect & Get Started';
+  }
+}
+
+// Onboarding
+function startOnboard() {
+  show('s-onboard');
+  obHist = []; obTurns = 0;
+  var kick = {role:'user', content:"Hi, I'm ready to set up my health profile."};
+  obHist.push(kick);
+  addMsg('ob-chat','u',"Hi, I'm ready to set up my health profile.");
+  obReply();
+}
+
+function addMsg(chatId, role, text) {
+  var chat = document.getElementById(chatId);
+  var wrap = document.createElement('div');
+  wrap.className = 'msg ' + role;
+  wrap.innerHTML = '<div class="av">' + (role==='a'?'🌿':'✦') + '</div><div class="bbl">' + fmt(text) + '</div>';
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping(chatId) {
+  var chat = document.getElementById(chatId);
+  var wrap = document.createElement('div');
+  wrap.className = 'msg a'; wrap.id = chatId+'-typing';
+  wrap.innerHTML = '<div class="av">🌿</div><div class="bbl typing-bbl"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function hideTyping(chatId) {
+  var el = document.getElementById(chatId+'-typing');
+  if (el) el.remove();
+}
+
+async function obReply() {
+  document.getElementById('ob-send').disabled = true;
+  showTyping('ob-chat');
+  try {
+    var txt = await claude(SYS_OB, obHist, 700);
+    hideTyping('ob-chat');
+    obHist.push({role:'assistant', content:txt});
+    obTurns++;
+    var done = txt.includes('PROFILE_COMPLETE');
+    var display = txt.replace('PROFILE_COMPLETE','').trim();
+    addMsg('ob-chat','a', display);
+    var pct = Math.min(Math.round((obTurns/16)*100), done ? 100 : 92);
+    document.getElementById('prog').style.width = pct + '%';
+    if (done) {
+      PROFILE = display;
+      localStorage.setItem('v_profile', PROFILE);
+      document.getElementById('prog-lbl').textContent = 'Profile complete ✓';
+      document.getElementById('ob-done').classList.add('show');
+      document.getElementById('ob-in').disabled = true;
+    } else {
+      document.getElementById('ob-send').disabled = false;
+      document.getElementById('ob-in').focus();
+    }
+  } catch(e) {
+    hideTyping('ob-chat');
+    addMsg('ob-chat','a','Something went wrong — please check your connection and try again.');
+    document.getElementById('ob-send').disabled = false;
+  }
+}
+
+function obKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();obSend();} }
+
+function obSend() {
+  var el = document.getElementById('ob-in');
+  var txt = el.value.trim();
+  if (!txt || el.disabled) return;
+  el.value=''; el.style.height='auto';
+  obHist.push({role:'user',content:txt});
+  addMsg('ob-chat','u',txt);
+  obReply();
+}
+
+function goCoach(){ initCoach(); }
+
+// Coaching
+function initCoach() {
+  show('s-coach');
+  ccHist = [];
+  document.getElementById('coach-dt').textContent =
+    new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('drawer-body').textContent = PROFILE;
+  addMsg('cc-chat','a','Welcome back. Your health profile is loaded.\n\nTap **Morning check-in** to start your day, or just ask me anything.');
+}
+
+async function ccSend() {
+  var el = document.getElementById('cc-in');
+  var txt = el.value.trim();
+  if (!txt) return;
+  el.value=''; el.style.height='auto';
+  document.getElementById('cc-send').disabled = true;
+  ccHist.push({role:'user',content:txt});
+  addMsg('cc-chat','u',txt);
+  showTyping('cc-chat');
+  try {
+    var reply = await claude(SYS_CC + PROFILE, ccHist, 900);
+    hideTyping('cc-chat');
+    ccHist.push({role:'assistant',content:reply});
+    addMsg('cc-chat','a',reply);
+    parseMacros(reply);
+  } catch(e) {
+    hideTyping('cc-chat');
+    addMsg('cc-chat','a','Something went wrong. Please try again.');
+  }
+  document.getElementById('cc-send').disabled = false;
+  document.getElementById('cc-in').focus();
+}
+
+function ccKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ccSend();} }
+
+function chip(text, send) {
+  document.getElementById('cc-in').value = text;
+  if (send !== false) ccSend();
+  else document.getElementById('cc-in').focus();
+}
+
+function parseMacros(text) {
+  var cal = text.match(/Calories:\s*(\d+)\s*\/\s*(\d+)/i);
+  var pro = text.match(/Protein:\s*(\d+)g?\s*\/\s*(\d+)g?/i);
+  var crb = text.match(/Carbs:\s*(\d+)g?\s*\/\s*(\d+)g?/i);
+  var fat = text.match(/Fat:\s*(\d+)g?\s*\/\s*(\d+)g?/i);
+  var fib = text.match(/Fiber:\s*(\d+)g?\s*\/\s*(\d+)g?/i);
+  if (!cal) return;
+  setBar('c','mc',cal[1],cal[2],'',cal);
+  setBar('p','mp',pro?pro[1]:'—',pro?pro[2]:'—','g',pro);
+  setBar('ch','mch',crb?crb[1]:'—',crb?crb[2]:'—','g',crb);
+  setBar('f','mf',fat?fat[1]:'—',fat?fat[2]:'—','g',fat);
+  setBar('fi','mfi',fib?fib[1]:'—',fib?fib[2]:'—','g',fib);
+}
+
+function setBar(barKey,labelId,val,target,unit,match) {
+  document.getElementById(labelId).textContent = val+unit+' / '+target+unit;
+  var pct = match ? Math.min((parseInt(match[1])/parseInt(match[2]))*100, 100) : 0;
+  document.getElementById('b'+barKey).style.width = pct+'%';
+}
+
+function tick(el) {
+  el.classList.toggle('done');
+  el.querySelector('.hcircle').textContent = el.classList.contains('done') ? '✓' : '';
+}
+
+function openDrawer(){ document.getElementById('drawer-bg').classList.add('open'); }
+function closeDrawer(){ document.getElementById('drawer-bg').classList.remove('open'); }
+function bgClick(e){ if(e.target===document.getElementById('drawer-bg')) closeDrawer(); }
+
+function doReset() {
+  if(!confirm('Reset Vitale? This clears your profile and all history.')) return;
+  localStorage.removeItem('v_key');
+  localStorage.removeItem('v_profile');
+  KEY=''; PROFILE=''; obHist=[]; ccHist=[];
+  document.getElementById('key-in').value='';
+  document.getElementById('key-btn').disabled=false;
+  document.getElementById('key-btn').textContent='Connect & Get Started';
+  document.getElementById('key-err').style.display='none';
+  show('s-key');
+}
+
+function resize(el) {
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,110)+'px';
+}
+
+function fmt(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^## (.+)$/gm,'<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.05rem;font-weight:600;color:var(--forest);margin:.9rem 0 .3rem">$1</div>')
+    .replace(/^# (.+)$/gm,'<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.2rem;font-weight:600;color:var(--forest);margin:.9rem 0 .3rem">$1</div>')
+    .replace(/📊 (.+)/g,'<div style="font-size:.8rem;background:var(--cream2);padding:.45rem .7rem;border-radius:6px;margin:.4rem 0;line-height:2;font-weight:400">📊 $1</div>')
+    .replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>
